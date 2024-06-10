@@ -1,9 +1,10 @@
 import express, { Request, Response } from "express";
 import "dotenv/config";
+import path from "path";
 const port = process.env.PORT;
 const app = express();
 app.use(express.json());
-
+app.use(express.static("dist"));
 //test data to use
 const mockUsers: User[] = [
   {
@@ -21,6 +22,8 @@ type User = {
   email: string;
   password: string;
 };
+
+//Post request receiving login credentials
 app.post("/login", (req: Request, res: Response) => {
   //we are casting receivedUser as a User type because we check its properties immediately afterward and we 400 out if it isn't; is this proper behavior?
   const receivedUser: User = req.body;
@@ -60,7 +63,7 @@ app.post("/login", (req: Request, res: Response) => {
 });
 
 app.get("/", (req: Request, res: Response) => {
-  res.sendFile(__dirname + "/index.html");
+  res.sendFile(path.join(__dirname, "/dist/index.html"));
 });
 
 app.listen(port, () => {
