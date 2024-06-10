@@ -4,11 +4,6 @@ const port = process.env.PORT;
 const app = express();
 app.use(express.json());
 
-type User = {
-  email: string;
-  password: string;
-};
-
 //test data to use
 const mockUsers: User[] = [
   {
@@ -20,10 +15,15 @@ const mockUser = mockUsers[0];
 
 //test login post body command
 // GOOD:        curl -X POST --data '{"email": "john@gmail.com", "password": "john"}' --header 'content-type: application/json' localhost:3000/login
-// BAD:         curl -X POST -d {email=john@gmail.com" password=password}' localhost:3000/login
+// BAD:         curl -X POST --data '{"email": "john@gmail.com", "password": "john"}' --header 'content-type: application/json' localhost:3000/login
 
+type User = {
+  email: string;
+  password: string;
+};
 app.post("/login", (req: Request, res: Response) => {
-  const receivedUser = req.body;
+  //we are casting receivedUser as a User type because we check its properties immediately afterward and we 400 out if it isn't; is this proper behavior?
+  const receivedUser: User = req.body;
 
   //check that the request body has email and password, otherwise return a 400 error
   const reqIsUserObject = "email" in receivedUser && "password" in receivedUser;
@@ -42,12 +42,21 @@ app.post("/login", (req: Request, res: Response) => {
       );
   }
 
+  //If the received object is a valid user situation:
   console.log(
     `Received post request with body ${JSON.stringify(
       receivedUser
-    )}, responding in kind`
+    )}, checking credentials`
   );
-  return res.status(200).send(receivedUser);
+  //Check if the user credentials are valid
+  const authenticated = mockUsers.some(
+    user =>
+      receivedUser.email === user.email &&
+      receivedUser.password === user.password
+  );
+  return authenticated
+    ? res.status(200).send(receivedUser)
+    : res.status(401).send("Login failed, bad credentials");
 });
 
 app.get("/", (req: Request, res: Response) => {
