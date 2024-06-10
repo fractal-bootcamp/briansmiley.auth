@@ -5,7 +5,7 @@ const app = express();
 app.use(express.json());
 
 app.get("/", (req: Request, res: Response) => {
-  res.send(`Server running on port ${port}`);
+  res.sendFile(__dirname + "/index.html");
 });
 
 app.listen(port, () => {
