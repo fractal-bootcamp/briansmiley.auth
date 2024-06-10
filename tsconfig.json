@@ -1,12 +1,12 @@
 {
-  "include": ["src/**/index.ts"],
+  "include": ["src/index.ts"],
   "compilerOptions": {
     "module": "commonjs",
     "esModuleInterop": true,
-    "target": "es6",
+    "target": "es2016",
     "moduleResolution": "node",
     "inlineSourceMap": true,
     "outDir": "dist",
-    "lib": ["es2022"]
+    "lib": ["es2022", "dom"] //"dom" lets us access document and window objects
   }
 }
