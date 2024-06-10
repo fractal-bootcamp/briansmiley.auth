@@ -15,7 +15,7 @@ const mockUser = mockUsers[0];
 
 //test login post body command
 // GOOD:        curl -X POST --data '{"email": "john@gmail.com", "password": "john"}' --header 'content-type: application/json' localhost:3000/login
-// BAD:         curl -X POST --data '{"email": "john@gmail.com", "password": "john"}' --header 'content-type: application/json' localhost:3000/login
+// BAD:         curl -X POST --data '{"email": "john@gmail.com", "password": "wrongpassword"}' --header 'content-type: application/json' localhost:3000/login
 
 type User = {
   email: string;
