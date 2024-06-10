@@ -29,5 +29,5 @@ const submitEnteredCredentials = async (credentials: CredentialObject) => {
   });
   return response;
 };
-// submitButton.onclick = () => submitEnteredCredentials(enteredCredentials());
-submitButton.onclick = () => console.log("clicked");
+submitButton.onclick = () => submitEnteredCredentials(enteredCredentials());
+// submitButton.onclick = () => console.log("clicked");
