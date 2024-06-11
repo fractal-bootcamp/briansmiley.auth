@@ -1,6 +1,3 @@
-// import "dotenv/config";
-// const port = process.env.PORT;
-
 console.log("Site running");
 const emailInput = document.querySelector<HTMLInputElement>("#email-input");
 const passwordInput =
@@ -42,13 +39,22 @@ const submitEnteredCredentials = async (
   credentials: CredentialObject,
   credentialsPurpose: CredentialsPurpose
 ) => {
-  console.log(credentials);
-  const response = await fetch(`/${credentialsPurpose}`, {
+  //disable button to prevent repeat calls
+  submitButton.elt.disabled = true;
+
+  console.log("Sending: ", credentials);
+
+  //send current entered credentials to the backend
+  const response = await fetch(`/api/${credentialsPurpose}`, {
     method: "POST",
     body: JSON.stringify(credentials),
-    headers: new Headers({ "content-type": "application/json" }),
-    redirect: "follow"
+    headers: new Headers({ "content-type": "application/json" })
   });
+  console.log("response: ", response);
+  const body = await response.json();
+  console.log("response.json: ", body);
+  if (body.redirectUrl) window.location = body.redirectUrl;
+  submitButton.elt.disabled = false;
   return response;
 };
 

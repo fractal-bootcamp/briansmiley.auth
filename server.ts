@@ -36,10 +36,12 @@ const login = async (credentials: User) => {
       email: credentials.email
     }
   });
-
   //exit if user lookup fails
-  if (!userDbEntry) return null;
-
+  if (!userDbEntry) {
+    console.log("User not found, prisma query returned", userDbEntry);
+    return null;
+  }
+  console.log("Found user: ", userDbEntry);
   //compare credential to database entry for use password
   const passwordMatches = credentials.password === userDbEntry.password;
 
@@ -48,7 +50,7 @@ const login = async (credentials: User) => {
 
 const checkReqBody = (req: Request) => {};
 //Post request receiving login credentials
-app.post("/login", async (req: Request, res: Response) => {
+app.post("/api/login", async (req: Request, res: Response) => {
   //check that the request body has email and password, otherwise return a 400 error
   const reqIsUserObject = "email" in req.body && "password" in req.body;
   if (!reqIsUserObject) {
@@ -59,7 +61,7 @@ app.post("/login", async (req: Request, res: Response) => {
     );
     return res
       .status(400)
-      .send(
+      .json(
         `Login request body did not contain an email and password: request received was ${JSON.stringify(
           req.body
         )}`
@@ -86,18 +88,18 @@ app.post("/login", async (req: Request, res: Response) => {
   if (authenticated === null)
     return res
       .status(401)
-      .send(
+      .json(
         `Login failed: No account with email ${receivedCredentials.email} was found`
       );
-
+  console.log("User auth", authenticated);
   //otherwise respond with the login result
   return authenticated
-    ? res.status(200).redirect("/dashboard") //login success
-    : res.status(401).send("Login failed, bad credentials"); //login failure
+    ? res.status(200).json({ redirectUrl: "http://localhost:3000/dashboard" }) //login success
+    : res.status(401).json("Login failed, bad credentials"); //login failure
 });
 
 //Create new user signup
-app.post("/signup", async (req: Request, res: Response) => {
+app.post("/api/signup", async (req: Request, res: Response) => {
   //check that the request body has email and password, otherwise return a 400 error
   const reqIsUserObject = "email" in req.body && "password" in req.body;
   if (!reqIsUserObject) {
@@ -108,7 +110,7 @@ app.post("/signup", async (req: Request, res: Response) => {
     );
     return res
       .status(400)
-      .send(
+      .json(
         `Signup request body did not contain an email and password: request received was ${JSON.stringify(
           req.body
         )}`
@@ -132,7 +134,7 @@ app.post("/signup", async (req: Request, res: Response) => {
   //error handler here taken from https://www.prisma.io/docs/orm/prisma-client/debugging-and-troubleshooting/handling-exceptions-and-errors
   try {
     const createdUser = await prisma.user.create({ data: receivedCredentials });
-    return res.status(200).send(createdUser);
+    return res.status(200).json(createdUser);
   } catch (e) {
     //Prisma will give us a P2002 error code if there is a Unique conflict
     if (
@@ -142,25 +144,25 @@ app.post("/signup", async (req: Request, res: Response) => {
       console.log(
         `User already exists (Prisma threw a unique constraint violation), email: ${receivedCredentials.email}`
       );
-      return res
-        .status(409)
-        .json({
-          message:
-            "User already exists (Prisma threw a unique constraint violation)",
-          code: "existingUser"
-        });
+      return res.status(409).json({
+        message:
+          "User already exists (Prisma threw a unique constraint violation)",
+        code: "existingUser"
+      });
     }
     //If we get any other error then idk, throw it
     else throw e;
   }
 });
 
+app.get("/go", (req: Request, res: Response) => {
+  console.log("Directing to login");
+  res.json({ redirectUrl: "http://localhost:3000/login" });
+});
 app.get("/:pageName", (req: Request, res: Response) => {
   const page = req.params.pageName;
+  console.log(`Trying to serve ${page}`);
   res.sendFile(path.join(__dirname, `/dist/${page}.html`));
-});
-app.get("/", (req: Request, res: Response) => {
-  res.redirect("/dist/login");
 });
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

@@ -8,16 +8,11 @@
     <link rel="stylesheet" href="main.css" />
   </head>
   <body>
-    <button id="go-to-signin">Go To SIgning</button>
+    Welcome, this is The Button
+    <button id="the-button">Go To SIgning</button>
     <script>
-      document.getElementById("go-to-signin").onclick = () =>
-        (async () => {
-          res = await fetch("/go");
-          console.log("response: ", res);
-          const body = await res.json();
-          console.log(body);
-          window.location = body.redirectUrl;
-        })();
+      document.getElementById("the-button").onclick = () =>
+        console.log("You're in");
     </script>
   </body>
 </html>
