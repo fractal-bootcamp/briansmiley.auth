@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Express Auth</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="main.css" />
   </head>
   <body>
-    <input type="text" id="email-input" />
-    <input type="text" id="password-input" />
-    <button onClick="">Submit (fake)</button>
+    Welcome, this is The Button
+    <button id="the-button">Go To SIgning</button>
+    <script>
+      document.getElementById("the-button").onclick = () =>
+        console.log("You're in");
+    </script>
   </body>
 </html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Express Auth</title>
+    <link rel="stylesheet" href="main.css" />
+  </head>
+  <body>
+    <button id="go-to-signin">Go To SIgning</button>
+    <script>
+      document.getElementById("go-to-signin").onclick = () =>
+        (async () => {
+          res = await fetch("/go");
+          console.log("response: ", res);
+          const body = await res.json();
+          console.log(body);
+          window.location = body.redirectUrl;
+        })();
+    </script>
+  </body>
+</html>
