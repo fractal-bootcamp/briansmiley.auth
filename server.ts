@@ -6,6 +6,7 @@ import { Prisma } from "@prisma/client";
 const cookieParser = require("cookie-parser");
 //Checks if a user is currently authenticated
 const port = process.env.PORT;
+const base_url = `http://localhost:${port}`;
 const app = express();
 app.use(cookieParser());
 app.use(express.json());
@@ -66,17 +67,17 @@ app.post("/api/login", async (req: Request, res: Response) => {
     );
     return res
       .status(400)
-      .json(
-        `Login request body did not contain an email and password: request received was ${JSON.stringify(
+      .json({
+        message: `Login request body did not contain an email and password: request received was ${JSON.stringify(
           req.body
-        )}`
-      );
+        )}`,
+        redirectUrl: `${base_url}`
+      });
   }
   const receivedCredentials: User = {
     email: req.body.email,
     password: req.body.password
   };
-
   ////If the received object a valid user object:
 
   //debug log the received credentials
@@ -99,7 +100,7 @@ app.post("/api/login", async (req: Request, res: Response) => {
   console.log("User auth", authenticated);
   //otherwise respond with the login result
   return authenticated
-    ? res.status(200).json({ redirectUrl: "http://localhost:3000/dashboard" }) //login success
+    ? res.status(200).json({ redirectUrl: `${base_url}/dashboard` }) //login success
     : res.status(401).json("Login failed, bad credentials"); //login failure
 });
 
@@ -159,10 +160,13 @@ app.post("/api/signup", async (req: Request, res: Response) => {
     else throw e;
   }
 });
+app.get("/logout", (req: Request, res: Response) => {
+  res.clearCookie("userId").json({ redirectUrl: `${base_url}` });
+});
 
 app.get("/go", (req: Request, res: Response) => {
   console.log("Directing to login");
-  res.json({ redirectUrl: "http://localhost:3000/login" });
+  res.json({ redirectUrl: `${base_url}/login` });
 });
 app.get("/dashboard", (req: Request, res: Response) => {
   if (!req.cookies.userId) return res.status(401).json("You are not logged in");
