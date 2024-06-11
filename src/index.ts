@@ -1,4 +1,5 @@
 console.log("Site running");
+
 const emailInput = document.querySelector<HTMLInputElement>("#email-input");
 const passwordInput =
   document.querySelector<HTMLInputElement>("#password-input");
@@ -25,7 +26,6 @@ const submitButton = ((): SubmitButton => {
   if (!button) throw new Error("No button found");
   return { elt: button, purpose: purpose };
 })();
-
 submitButton.elt.onclick;
 //function that generates a fetch-postable credential object from the current DOM state
 const enteredCredentials = (): CredentialObject => {
@@ -60,12 +60,3 @@ const submitEnteredCredentials = async (
 
 submitButton.elt.onclick = () =>
   submitEnteredCredentials(enteredCredentials(), submitButton.purpose);
-// submitButton.onclick = () => console.log("clicked");
-
-//start an async
-//disable button and do any other loading state DOM updates
-//await call the async fetch operation
-//check for errors; e.g. show "user already exists" on signup
-// >>fetch might make the server redirect; we dont handle this?
-
-//to handle a redirect; history.push?

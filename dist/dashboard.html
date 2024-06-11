@@ -9,10 +9,22 @@
   </head>
   <body>
     Welcome, this is The Button
-    <button id="the-button">Go To SIgning</button>
+    <button id="the-button">Button</button>
+
+    <br /><br /><br />
+    This is the leave button <button id="logout-button">See ya</button>
     <script>
       document.getElementById("the-button").onclick = () =>
         console.log("You're in");
+
+      const logoutButton = document.querySelector("#logout-button");
+      if (logoutButton) {
+        logoutButton.onclick = async () => {
+          const logoutResponse = await fetch("/logout");
+          const body = await logoutResponse.json();
+          if (body.redirectUrl) window.location = body.redirectUrl;
+        };
+      }
     </script>
   </body>
 </html>
