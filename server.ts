@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import path from "path";
 import "dotenv/config";
 import prisma from "./client";
@@ -8,8 +8,37 @@ const cookieParser = require("cookie-parser");
 const port = process.env.PORT;
 const base_url = `http://localhost:${port}`;
 const app = express();
+
+//declaring a global extension of the Request type to include an `authed` property;
+//we can also do this locally with:
+//interface RequestWithAuthed extends Request {authed?: boolean}
+declare global {
+  namespace Express {
+    interface Request {
+      authed?: boolean;
+    }
+  }
+}
+
+//isAuthed middleware to attach a boolean to the request that says whether they are authed or not
+const isAuthed = async (req: Request, res: Response, next: NextFunction) => {
+  //idInDb is assigned null if thereis no userID cookie, or if the userId is not associated with a database user
+  // console.log(`req.cookies.userId = ${req.cookies.userId}; `);
+  const idInDb = req.cookies.userId
+    ? await prisma.user.findUnique({
+        where: { id: req.cookies.userId }
+      })
+    : null;
+  //Set auth based on whether userId is in the database
+  const authed = !(idInDb === null);
+  req["authed"] = authed;
+
+  next();
+};
+
 app.use(cookieParser());
 app.use(express.json());
+app.use(isAuthed);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("dist"));
 //test data to use
@@ -30,10 +59,10 @@ const mockUser = mockUsers[0];
 // BAD:         curl -X POST --data '{"email": "john@gmail.com", "password": "wrongpassword"}' --header 'content-type: application/json' localhost:3000/login
 
 /**
-takes our request and checks the database to see if the credentials are valid;
-returns null for a failed user lookup, or a boolean for password match status
--if  login is successful, sets a cookie with the user's id
-*/
+ takes our request and checks the database to see if the credentials are valid;
+ returns null for a failed user lookup, or a boolean for password match status
+ -if  login is successful, sets a cookie with the user's id
+ */
 const login = async (credentials: User, res: Response) => {
   //lookup the user's email in the database
   const userDbEntry = await prisma.user.findUnique({
@@ -65,14 +94,12 @@ app.post("/api/login", async (req: Request, res: Response) => {
         req.body
       )}, responding with 400 error`
     );
-    return res
-      .status(400)
-      .json({
-        message: `Login request body did not contain an email and password: request received was ${JSON.stringify(
-          req.body
-        )}`,
-        redirectUrl: `${base_url}`
-      });
+    return res.status(400).json({
+      message: `Login request body did not contain an email and password: request received was ${JSON.stringify(
+        req.body
+      )}`,
+      redirectUrl: `${base_url}`
+    });
   }
   const receivedCredentials: User = {
     email: req.body.email,
@@ -168,13 +195,30 @@ app.get("/go", (req: Request, res: Response) => {
   console.log("Directing to login");
   res.json({ redirectUrl: `${base_url}/login` });
 });
-app.get("/dashboard", (req: Request, res: Response) => {
-  if (!req.cookies.userId) return res.status(401).json("You are not logged in");
-  else return res.sendFile(path.join(__dirname, `/dist/dashboard.html`));
-});
+
+//list of paths that care if we are authed
+const authGatedPaths = ["dashboard"];
+
+//general fetch for pages
 app.get("/:pageName", (req: Request, res: Response) => {
   const page = req.params.pageName;
   console.log(`Trying to serve ${page}`);
+  if (authGatedPaths.includes(page)) {
+    console.log(
+      `Gated path ${page} requested, checking auth... Authed is ${req.authed}`
+    );
+    if (!req.authed) {
+      console.log(
+        `Auth failed; userId cookie is ${req.cookies.userId}, redirecting to login`
+      );
+
+      return res.redirect("/login");
+    }
+    console.log(
+      `Auth success: req cookie contains userId ${req.cookies.userId}`
+    );
+  }
+  //if the request is not authorized, redirect to login
   res.sendFile(path.join(__dirname, `/dist/${page}.html`));
 });
 app.listen(port, () => {
